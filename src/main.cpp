@@ -13,21 +13,24 @@
 bool rainbowMode = 1;
 bool pulsateMode = 0;
 bool whiteMode = 0;
-bool staticColorMode = 0;
 bool offMode = 0;
 
 //----------ISR----------
 
-void SwitchModeISR(void)
+void SwitchModeISR()
 {
 }
-void SwitchPowerISR(void)
+void SwitchPowerISR()
 {
 }
 
 //----------Function Defenitions----------
 
-void EffectHandler(void);
+void EffectHandler();
+void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness);
+void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturation);
+void StaticWhite(uint8_t staticHue, uint8_t saticSaturation, uint8_t staticBrightness);
+void TurnOff();
 
 //----------Setup----------
 
@@ -45,4 +48,31 @@ void setup()
 void loop()
 {
   EffectHandler();
+}
+
+//----------Functions----------
+
+void EffectHandler()
+{
+  if (rainbowMode == 1 && pulsateMode == 0 && whiteMode == 0 && offMode == 0)
+    Rainbow(25, 255, 255);
+  else if (rainbowMode == 0 && pulsateMode == 1 && whiteMode == 0 && offMode == 0)
+    Pulsate(10, HUE_PINK, 255);
+  else if (rainbowMode == 0 && pulsateMode == 0 && whiteMode == 1 && offMode == 0)
+    StaticWhite(HUE_PURPLE, 255, 255);
+  else if (rainbowMode == 0 && pulsateMode == 0 && whiteMode == 0 && offMode == 1)
+    TurnOff();
+}
+
+void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness)
+{
+}
+void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturation)
+{
+}
+void StaticWhite(uint8_t staticHue, uint8_t saticSaturation, uint8_t staticBrightness)
+{
+}
+void TurnOff()
+{
 }
