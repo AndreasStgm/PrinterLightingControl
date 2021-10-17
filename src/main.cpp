@@ -17,11 +17,43 @@ bool offMode = 0;
 
 //----------ISR----------
 
-void SwitchModeISR()
+void CycleModeISR()
 {
+  if (offMode != 1)
+  {
+    if (rainbowMode == 1)
+    {
+      rainbowMode = 0;
+      pulsateMode = 1;
+    }
+    else if (pulsateMode == 1)
+    {
+      pulsateMode = 0;
+      whiteMode = 1;
+    }
+    else if (whiteMode == 1)
+    {
+      whiteMode = 0;
+      rainbowMode = 1;
+    }
+  }
 }
 void SwitchPowerISR()
 {
+  if (offMode == 0)
+  {
+    offMode = 1;
+    rainbowMode = 0;
+    pulsateMode = 0;
+    whiteMode = 0;
+  }
+  else if (offMode == 1)
+  {
+    offMode = 0;
+    rainbowMode = 0;
+    pulsateMode = 0;
+    whiteMode = 1;
+  }
 }
 
 //----------Function Defenitions----------
@@ -41,7 +73,7 @@ void setup()
   pinMode(SW_MODE, INPUT_PULLUP);
   pinMode(SW_PWR, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(SW_MODE), SwitchModeISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SW_MODE), CycleModeISR, FALLING);
   attachInterrupt(digitalPinToInterrupt(SW_PWR), SwitchPowerISR, FALLING);
 }
 
