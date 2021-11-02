@@ -5,8 +5,14 @@
 
 //----------Define----------
 
-#define SW_MODE 18
-#define SW_PWR 19
+#define SW_MODE 2
+#define SW_PWR 3
+
+#define TRIM_PIN A0
+
+#define DATA_PIN 4
+#define NUM_LEDS 20
+CRGB leds[NUM_LEDS];
 
 //----------Variable----------
 
@@ -61,7 +67,7 @@ void SwitchPowerISR()
 void EffectHandler();
 void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness);
 void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturation);
-void StaticWhite(uint8_t staticHue, uint8_t saticSaturation, uint8_t staticBrightness);
+void StaticWhite();
 void TurnOff();
 
 //----------Setup----------
@@ -69,6 +75,8 @@ void TurnOff();
 void setup()
 {
   delay(2000); //2 second power on delay for safety/sanity
+
+  FastLED.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
 
   pinMode(SW_MODE, INPUT_PULLUP);
   pinMode(SW_PWR, INPUT_PULLUP);
@@ -91,20 +99,52 @@ void EffectHandler()
   else if (rainbowMode == 0 && pulsateMode == 1 && whiteMode == 0 && offMode == 0)
     Pulsate(10, HUE_PINK, 255);
   else if (rainbowMode == 0 && pulsateMode == 0 && whiteMode == 1 && offMode == 0)
-    StaticWhite(HUE_PURPLE, 255, 255);
+    StaticWhite();
   else if (rainbowMode == 0 && pulsateMode == 0 && whiteMode == 0 && offMode == 1)
     TurnOff();
 }
 
 void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness)
 {
+  for (int rainbowHue = 0; rainbowHue < 256; rainbowHue++)
+  {
+    for (int i = 0; i < NUM_LEDS; i++)
+      leds[i] = CHSV(rainbowHue, rainbowSaturation, rainbowBrightness);
+
+    if (rainbowMode == 0 && (pulsateMode == 1 || whiteMode == 1 || offMode == 1))
+      break;
+
+    delay(rainbowSpeed);
+    FastLED.show();
+  }
 }
 void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturation)
 {
+  for (int brightnessPulse = 0; brightnessPulse < 512; brightnessPulse++)
+  {
+    if (brightnessPulse < 256)
+      for (int i = 0; i < NUM_LEDS; i++)
+        leds[i] = CHSV(pulsateColor, pulsateSaturation, brightnessPulse);
+    else
+      for (int i = 0; i < NUM_LEDS; i++)
+        leds[i] = CHSV(pulsateColor, pulsateSaturation, 511 - brightnessPulse);
+
+    if (pulsateMode == 0 && (rainbowMode == 1 || whiteMode == 1 || offMode == 1))
+      break;
+
+    delay(pulsateSpeed);
+    FastLED.show();
+  }
 }
-void StaticWhite(uint8_t staticHue, uint8_t saticSaturation, uint8_t staticBrightness)
+void StaticWhite()
 {
+  for (int i = 0; i < NUM_LEDS; i++)
+    leds[i] = CRGB::White;
+  FastLED.show();
 }
 void TurnOff()
 {
+  for (int i = 0; i < NUM_LEDS; i++)
+    leds[i] = CRGB::Black;
+  FastLED.show();
 }
