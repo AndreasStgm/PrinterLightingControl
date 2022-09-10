@@ -78,7 +78,7 @@ void SwitchPowerISR()
   last_power_interrupt_time = power_interrupt_time;
 }
 
-//----------Function Defenitions----------
+//----------Function Definitions----------
 
 void EffectHandler();
 void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness);
@@ -90,7 +90,13 @@ void TurnOff();
 
 void setup()
 {
+  // Serial.begin(9600); // for debugging purposes
+
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  digitalWrite(LED_BUILTIN, HIGH);
   delay(2000); // 2 second power on delay for safety/sanity
+  digitalWrite(LED_BUILTIN, LOW);
 
   FastLED.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
 
@@ -104,6 +110,7 @@ void setup()
 void loop()
 {
   EffectHandler();
+  // Serial.println(analogRead(TRIM_PIN) * 256 / 1024);
 }
 
 //----------Functions----------
