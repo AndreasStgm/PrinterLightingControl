@@ -16,6 +16,8 @@ CRGB leds[NUM_LEDS];
 
 //----------Variable----------
 
+uint8_t debounceTime = 200;
+
 bool rainbowMode = 1;
 bool pulsateMode = 0;
 bool whiteMode = 0;
@@ -25,41 +27,55 @@ bool offMode = 0;
 
 void CycleModeISR()
 {
-  if (offMode != 1)
+  static unsigned long last_cycle_interrupt_time = 0;
+  unsigned long cycle_interrupt_time = millis();
+
+  if (cycle_interrupt_time - last_cycle_interrupt_time > debounceTime)
   {
-    if (rainbowMode == 1)
+    if (offMode != 1)
     {
-      rainbowMode = 0;
-      pulsateMode = 1;
-    }
-    else if (pulsateMode == 1)
-    {
-      pulsateMode = 0;
-      whiteMode = 1;
-    }
-    else if (whiteMode == 1)
-    {
-      whiteMode = 0;
-      rainbowMode = 1;
+      if (rainbowMode == 1)
+      {
+        rainbowMode = 0;
+        pulsateMode = 1;
+      }
+      else if (pulsateMode == 1)
+      {
+        pulsateMode = 0;
+        whiteMode = 1;
+      }
+      else if (whiteMode == 1)
+      {
+        whiteMode = 0;
+        rainbowMode = 1;
+      }
     }
   }
+  last_cycle_interrupt_time = cycle_interrupt_time;
 }
 void SwitchPowerISR()
 {
-  if (offMode == 0)
+  static unsigned long last_power_interrupt_time = 0;
+  unsigned long power_interrupt_time = millis();
+
+  if (power_interrupt_time - last_power_interrupt_time > debounceTime)
   {
-    offMode = 1;
-    rainbowMode = 0;
-    pulsateMode = 0;
-    whiteMode = 0;
+    if (offMode == 0)
+    {
+      offMode = 1;
+      rainbowMode = 0;
+      pulsateMode = 0;
+      whiteMode = 0;
+    }
+    else if (offMode == 1)
+    {
+      offMode = 0;
+      rainbowMode = 0;
+      pulsateMode = 0;
+      whiteMode = 1;
+    }
   }
-  else if (offMode == 1)
-  {
-    offMode = 0;
-    rainbowMode = 0;
-    pulsateMode = 0;
-    whiteMode = 1;
-  }
+  last_power_interrupt_time = power_interrupt_time;
 }
 
 //----------Function Defenitions----------
@@ -74,7 +90,7 @@ void TurnOff();
 
 void setup()
 {
-  delay(2000); //2 second power on delay for safety/sanity
+  delay(2000); // 2 second power on delay for safety/sanity
 
   FastLED.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
 
