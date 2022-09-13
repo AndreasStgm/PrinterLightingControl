@@ -81,8 +81,9 @@ void SwitchPowerISR()
 //----------Function Definitions----------
 
 void EffectHandler();
-void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness);
-void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturation);
+int ReadTrimPot();
+void Rainbow(uint8_t rainbowSaturation, uint8_t rainbowBrightness);
+void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateSaturation);
 void StaticWhite();
 void TurnOff();
 
@@ -90,8 +91,6 @@ void TurnOff();
 
 void setup()
 {
-  // Serial.begin(9600); // for debugging purposes
-
   pinMode(LED_BUILTIN, OUTPUT);
 
   digitalWrite(LED_BUILTIN, HIGH);
@@ -110,7 +109,6 @@ void setup()
 void loop()
 {
   EffectHandler();
-  // Serial.println(analogRead(TRIM_PIN) * 256 / 1024);
 }
 
 //----------Functions----------
@@ -118,16 +116,32 @@ void loop()
 void EffectHandler()
 {
   if (rainbowMode == 1 && pulsateMode == 0 && whiteMode == 0 && offMode == 0)
-    Rainbow(25, 255, 255);
+    Rainbow(255, 255);
   else if (rainbowMode == 0 && pulsateMode == 1 && whiteMode == 0 && offMode == 0)
-    Pulsate(10, HUE_PINK, 255);
+    Pulsate(10, 255);
   else if (rainbowMode == 0 && pulsateMode == 0 && whiteMode == 1 && offMode == 0)
     StaticWhite();
   else if (rainbowMode == 0 && pulsateMode == 0 && whiteMode == 0 && offMode == 1)
     TurnOff();
 }
 
-void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBrightness)
+int ReadTrimPot()
+{
+  int readValue = analogRead(TRIM_PIN) * 256 / 1024;
+
+  if (readValue == 0 || readValue == 255)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+  else
+  {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  return readValue;
+}
+
+void Rainbow(uint8_t rainbowSaturation, uint8_t rainbowBrightness)
 {
   for (int rainbowHue = 0; rainbowHue < 256; rainbowHue++)
   {
@@ -137,20 +151,20 @@ void Rainbow(uint8_t rainbowSpeed, uint8_t rainbowSaturation, uint8_t rainbowBri
     if (rainbowMode == 0 && (pulsateMode == 1 || whiteMode == 1 || offMode == 1))
       break;
 
-    delay(rainbowSpeed);
+    delay(ReadTrimPot());
     FastLED.show();
   }
 }
-void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturation)
+void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateSaturation)
 {
   for (int brightnessPulse = 0; brightnessPulse < 512; brightnessPulse++)
   {
     if (brightnessPulse < 256)
       for (int i = 0; i < NUM_LEDS; i++)
-        leds[i] = CHSV(pulsateColor, pulsateSaturation, brightnessPulse);
+        leds[i] = CHSV(ReadTrimPot(), pulsateSaturation, brightnessPulse);
     else
       for (int i = 0; i < NUM_LEDS; i++)
-        leds[i] = CHSV(pulsateColor, pulsateSaturation, 511 - brightnessPulse);
+        leds[i] = CHSV(ReadTrimPot(), pulsateSaturation, 511 - brightnessPulse);
 
     if (pulsateMode == 0 && (rainbowMode == 1 || whiteMode == 1 || offMode == 1))
       break;
@@ -162,7 +176,7 @@ void Pulsate(uint8_t pulsateSpeed, uint8_t pulsateColor, uint8_t pulsateSaturati
 void StaticWhite()
 {
   for (int i = 0; i < NUM_LEDS; i++)
-    leds[i] = CRGB::White;
+    leds[i] = CHSV(0, 0, ReadTrimPot());
   FastLED.show();
 }
 void TurnOff()
